@@ -9,6 +9,9 @@ struct Cli {
     #[arg(short, long)]
     /// FASTQ filename to read from
     input: String,
+    #[arg(short, long)]
+    /// Filename to write to
+    output: String,
     // umi should be between 4 to 18 long
     #[arg(short, long, default_value_t=6, value_parser = clap::value_parser!(u8).range(4..18))]
     /// UMI length in characters
@@ -28,6 +31,8 @@ fn main() {
 
     let reader = fastq::Reader::from_file(&cli.input)
                                             .expect("Cannot open input file");
+    let mut writer = fastq::Writer::to_file(&cli.output)
+                                                    .expect("Cannot write output file");
     for result in reader.records() {
         stats.nb_reads += 1;
         let record = result.expect("Error during fastq record parsing");
@@ -53,8 +58,8 @@ fn main() {
         // https://doc.rust-lang.org/std/collections/hash_map/enum.Entry.html
         *stats.umi.entry(umi).or_insert(0) += 1;
         //*stats.umi.entry(idx_linker.ok().parse()).or_insert(0) += 1;
-        let mut writer = fastq::Writer::new(std::io::stdout());
         writer.write(&id_umi, record.desc(), real_read.as_bytes(), qual_umi).expect("Cannot write record");
     }
     eprintln!("{:#?}\nthus nb_umi: {}", stats, stats.umi.len())
 }
+
