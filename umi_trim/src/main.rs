@@ -1,6 +1,8 @@
 use clap::Parser;
-use umi_trim::{Stats, split_by_sep, check_sequence};
 use bio::io::fastq;
+use bio::alphabets;
+use umi_trim::{Stats, split_by_sep, check_sequence};
+
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)] // Read from `Cargo.toml`
@@ -21,6 +23,21 @@ struct Cli {
     linker: String
 }
 
+// fn open_fastq(filename: &str) -> Box<dyn BufRead> {
+
+//     let is_gz_input = filename.ends_with(".gz");
+//     let file = File::open(filename).map_err(|e| e.to_string())?;
+//     // solution from:
+//     // https://users.rust-lang.org/t/solved-optional-bufreader-gzdecoder-or-bufreader-file/24714/2
+//     let buf: Box<dyn Read> = match is_gz_input {
+//         true => Box::new(GzDecoder::new(file)),
+//         false => Box::new(file),
+//     };
+//     let reader = BufReader::new(buf);
+//     reader
+// }
+
+
 fn main() {
     
     let cli = Cli::parse();
@@ -29,8 +46,16 @@ fn main() {
     //let result = count_in_fastq(&cli.input);
     //println!("Number of reads: {} and bases: {}", result.0, result.1);
 
+    let alphabet = alphabets::dna::alphabet();
+    // check that linker is DNA
+    if !alphabet.is_word(cli.linker.bytes()) {
+            eprintln!("linker {} contains non-DNA letters", &cli.linker);
+            std::process::exit(1)
+    };
+
+
     let reader = fastq::Reader::from_file(&cli.input)
-                                            .expect("Cannot open input file");
+                                   .expect("Cannot open input file");
     let mut writer = fastq::Writer::to_file(&cli.output)
                                                     .expect("Cannot write output file");
     for result in reader.records() {

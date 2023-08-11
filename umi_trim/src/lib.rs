@@ -22,8 +22,8 @@ impl Stats {
     }
 }
 
-// split string using a separator ("TATA")
-// modofied code from O'Reilly book Chapter 2, p28
+// split string using a separator such as ("TATA")
+// modified code from O'Reilly book Chapter 2, p28
 pub fn split_by_sep<T: FromStr>(seq: &str, sep: &str) -> Option<(T, T)> {
     match seq.find(sep) {
         None => None,
@@ -41,10 +41,10 @@ pub fn check_sequence(read: &Record, linker: &str, stats: & mut Stats) -> Option
     let alphabet = alphabets::dna::iupac_alphabet();
     // check that sequences are DNA + iupca
     if !alphabet.is_word(read.seq()) {
-            eprintln!("read {} contains non=uipca letter\n{}", read.id(), s);
+            eprintln!("read {} contains non-uipca letter\n{}", read.id(), s);
             std::process::exit(1)
     };
-    // check is the TATA motif is found, should be Some(6)
+    // check is the linker (TATA) motif is found, should be Some(6)
     let idx_linker = s.find(linker);
     if idx_linker.is_some() {
         stats.nb_linker += 1;
