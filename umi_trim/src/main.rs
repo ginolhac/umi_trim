@@ -12,7 +12,7 @@ struct Cli {
     // umi should be between 4 to 18 long
     #[arg(short, long, default_value_t=6, value_parser = clap::value_parser!(u8).range(4..18))]
     /// UMI length in characters
-    umi_length: usize,
+    umi_length: u8,
     #[arg(short, long, default_value_t=String::from("TATA"), value_parser = clap::value_parser!(String))]
     /// Linker UMI-READ to be discarded
     linker: String
@@ -34,13 +34,13 @@ fn main() {
         // check if read is expected DNA letters and possess the linker ("TATA")
         let idx_linker = check_sequence(&record, &cli.linker, & mut stats);
         // if no linker found or motif is found right after the UMI length, discard the read
-        if idx_linker.is_none() || idx_linker.unwrap() != cli.umi_length {
+        if idx_linker.is_none() || idx_linker.unwrap() != cli.umi_length as usize{
             continue;
         }
         let s = String::from_utf8(record.seq().to_vec()).expect("Found invalid UTF-8");
         
         // Qualities as seq
-        let left_index = cli.umi_length.to_owned() + cli.linker.len();
+        let left_index = cli.umi_length.to_owned() + cli.linker.len() as u8;
         let qual_umi = &record.qual()[left_index as usize..];
         let (umi, real_read) = split_by_sep::<String>(&s, &cli.linker).unwrap();
         // sanity check
